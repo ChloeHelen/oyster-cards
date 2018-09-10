@@ -1,6 +1,6 @@
 class Oystercard
 
-  attr_reader :balance
+  attr_reader :balance, :station
   attr_writer :in_journey
 
   DEFAULT_VALUE = 0
@@ -11,6 +11,7 @@ class Oystercard
     raise "Maximum amount allowed is #{MAXIMUM_VALUE}" if balance > MAXIMUM_VALUE
     @balance = balance
     @in_journey = false
+    @station = nil
   end
 
   def topup(amount)
@@ -22,9 +23,10 @@ class Oystercard
     @in_journey
   end
 
-  def touch_in
+  def touch_in(station)
     raise "Insufficient Funds" if insufficient_balance
     @in_journey = true
+    @station = station
   end
 
   def touch_out

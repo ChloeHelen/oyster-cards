@@ -2,6 +2,7 @@ require 'oyster_card.rb'
 
 describe Oystercard do
   it { is_expected.to respond_to :in_journey?}
+  it { is_expected.to respond_to(:touch_in).with(1).argument}
   it "is initialized with a balance of 0" do
     card = Oystercard.new
     expect(card.balance).to eq 0
@@ -31,13 +32,22 @@ describe Oystercard do
   describe "#touch_in" do
 
     it "changes in_journey to equal true" do
+      station = double("Station")
       subject.topup(10)
-      subject.touch_in
+      subject.touch_in(station)
       expect(subject).to be_in_journey
     end
 
     it "raise an error when the balance is less than the minimum fare" do
-      expect{subject.touch_in}.to raise_error "Insufficient Funds"
+      station = double("Station")
+      expect{subject.touch_in(station)}.to raise_error "Insufficient Funds"
+    end
+
+    it "stores the name of the touch in station" do
+      touch_in_station = double("Station")
+      subject.topup(10)
+      subject.touch_in(touch_in_station)
+      expect(subject.station).to eq touch_in_station
     end
 
   end
@@ -45,8 +55,9 @@ describe Oystercard do
   describe "#touch_out" do
 
     it "changes in_journey to equal false" do
+      station = double("Station")
       subject.topup(10)
-      subject.touch_in
+      subject.touch_in(station)
       subject.touch_out
       expect(subject).not_to be_in_journey
     end
