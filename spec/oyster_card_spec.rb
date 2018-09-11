@@ -1,6 +1,9 @@
 require 'oyster_card.rb'
 
 describe Oystercard do
+  let(:touch_in_station) { double(:station)}
+  let(:touch_out_station) { double('touch out station')}
+
   it { is_expected.to respond_to :in_journey?}
   it { is_expected.to respond_to(:touch_in).with(1).argument}
   it "is initialized with a balance of 0" do
@@ -19,10 +22,6 @@ describe Oystercard do
       expect(subject.balance).to eq 4
     end
 
-    # before (:each) do
-    #   subject.topup(described_class::MINIMUM_FARE)
-    # end
-
     it "raises error when balance goes beyond the maximum amount" do
       expect{subject.topup(described_class::MAXIMUM_VALUE + 1)}.to raise_error "Maximum amount allowed is #{described_class::MAXIMUM_VALUE}"
     end
@@ -32,22 +31,19 @@ describe Oystercard do
   describe "#touch_in" do
 
     it "changes in_journey to equal true" do
-      station = double("Station")
       subject.topup(10)
-      subject.touch_in(station)
+      subject.touch_in(touch_in_station)
       expect(subject).to be_in_journey
     end
 
     it "raise an error when the balance is less than the minimum fare" do
-      station = double("Station")
-      expect{subject.touch_in(station)}.to raise_error "Insufficient Funds"
+      expect{subject.touch_in(touch_in_station)}.to raise_error "Insufficient Funds"
     end
 
     it "stores the name of the touch in station" do
-      touch_in_station = double("Station")
       subject.topup(10)
       subject.touch_in(touch_in_station)
-      expect(subject.station).to eq touch_in_station
+      expect(subject.entry_station).to eq touch_in_station
     end
 
   end
@@ -55,19 +51,34 @@ describe Oystercard do
   describe "#touch_out" do
 
     it "changes in_journey to equal false" do
-      station = double("Station")
       subject.topup(10)
-      subject.touch_in(station)
-      subject.touch_out
+      subject.touch_in(touch_in_station)
+      subject.touch_out(touch_out_station)
       expect(subject).not_to be_in_journey
     end
 
     it "reduces the balance by the minimum fare when card touches out" do
       subject.topup(10)
-      expect{subject.touch_out}.to change{subject.balance}.by(-described_class::MINIMUM_FARE)
+      expect{subject.touch_out(touch_out_station)}.to change{subject.balance}.by(-described_class::MINIMUM_FARE)
+    end
+
+    it "stores the name of the touch out station" do
+      subject.topup(10)
+      subject.touch_in(touch_in_station)
+      subject.touch_out(touch_out_station)
+      expect(subject.exit_station).to eq touch_out_station
     end
 
   end
 
+  describe 'journey history' do
+    it 'lists all the journeys' do
+      subject.topup(10)
+      subject.touch_in(touch_in_station)
+      subject.touch_out(touch_out_station)
+      expect(subject.journey_history).to include({:entry=>touch_in_station, :exit_station=>touch_out_station})
+    end
+    
+  end
 
 end
